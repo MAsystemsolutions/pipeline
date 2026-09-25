@@ -53,7 +53,7 @@
     .btn-header { background-color: #ffffff; color: var(--vogue-black); border: 1px solid #ffffff; }
     .btn-header:hover { background-color: var(--vogue-black); color: #ffffff; border-color: #ffffff; }
     .btn-action { color: var(--vogue-black); border: 1px solid var(--vogue-black); background: transparent; padding: 4px 10px; font-size: 0.65rem; font-weight: 600; text-decoration: none; display: inline-block; cursor: pointer; }
-    .btn-action:hover { background-color: var(--vogue-black); color: #ffffff; }
+    .btn-action:hover, .btn-action.active { background-color: var(--vogue-black); color: #ffffff; }
 
     /* TABLES & BADGES */
     .table thead th { font-family: 'Montserrat', sans-serif; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 2px; background-color: var(--vogue-black) !important; color: #ffffff !important; padding: 15px; }
@@ -75,10 +75,10 @@
     .step.completed { border-color: var(--vogue-green); color: var(--vogue-green); }
     .step.issue-step.active { background: var(--vogue-alert) !important; border-color: var(--vogue-alert) !important; color: #fff; }
 
-    /* FEED & MENTIONS */
-    .mention-item { padding: 8px 12px; cursor: pointer; font-size: 0.8rem; border-bottom: 1px solid #eee; }
-    .mention-item:hover { background-color: var(--vogue-light-gray); }
-    
+    /* PHASE FILE ACCORDIONS */
+    .phase-accordion-item { border: 1px solid #111; margin-bottom: 12px; background: #fff; }
+    .phase-accordion-header { background: var(--vogue-light-gray); padding: 12px 18px; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; border-bottom: 1px solid #111; display: flex; justify-content: space-between; align-items: center; }
+
     .hidden { display: none !important; }
   </style>
 </head>
@@ -168,8 +168,19 @@
                 <button class="btn btn-action" id="btn-det-tech" onclick="switchDetailTab('tech')">System Specs</button>
                 <button class="btn btn-action" id="btn-det-dates" onclick="switchDetailTab('dates')">Operations</button>
                 <button class="btn btn-action" id="btn-det-finance" onclick="switchDetailTab('finance')">Finance</button>
+                <button class="btn btn-action" id="btn-det-files" onclick="switchDetailTab('files')">Files</button>
               </div>
+
+              <!-- REGULAR DATA GRID -->
               <div id="detail-grid" class="row g-3"></div>
+
+              <!-- PHASE-BASED FILES TAB CONTENT -->
+              <div id="files-tab-container" class="hidden">
+                <p class="text-muted mb-3" style="font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:1px;">
+                  Upload and review files categorized by each project phase:
+                </p>
+                <div id="phase-files-accordion"></div>
+              </div>
             </div>
           </div>
 
@@ -268,9 +279,12 @@
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbycD8ZzniLRMFFeapAaM-Gm-4IQLjfG_Kl0fyFRR2KC5KhoXdTtXU22GFRk2rZy1tiB/exec";
 
+    const PHASES = ["Created", "Issue", "Intake", "Site Survey", "Design & Engineering", "Permitting", "Installation", "Inspection", "PTO", "Closed", "Cancelled"];
+
     let portalData = { projects: [], stats: {}, currentUser: {} };
     let currentProjectId = null;
     let cachedProject = {};
+    let cachedProjectFiles = [];
     let allUserNames = [];
 
     // JSONP GET loader (Bypasses CORS completely)
@@ -306,6 +320,13 @@
       const json = await res.json();
       if (json.status === 'error') throw new Error(json.message);
       return json.data || json;
+    }
+
+    function readFileBase64(file) {
+      return new Promise((resolve) => {
+        if (!file) return resolve('');
+        const r = new FileReader(); r.onload = e => resolve(e.target.result); r.readAsDataURL(file);
+      });
     }
 
     function loadData() {
@@ -406,7 +427,7 @@
             driveBtn.classList.add('hidden');
           }
 
-          const stages = ["Created", "Issue", "Intake", "Site Survey", "Design & Engineering", "Permitting", "Installation", "Inspection", "PTO", "Closed", "Cancelled"];
+          const stages = PHASES;
           let foundActive = false;
           document.getElementById('chevron-path').innerHTML = stages.map(s => {
             let cls = "step";
@@ -417,18 +438,45 @@
           }).join('');
 
           switchDetailTab('info');
+          loadProjectFiles();
           loadProjectFeed();
         })
         .catch(err => alert("Error loading project: " + err.message));
     }
 
+    function loadProjectFiles() {
+      apiGetJSONP('getProjectFiles', { pid: currentProjectId })
+        .then(files => {
+          cachedProjectFiles = files || [];
+          if(!document.getElementById('files-tab-container').classList.contains('hidden')) {
+            renderFilesTab();
+          }
+        })
+        .catch(err => console.error(err));
+    }
+
     function switchDetailTab(type) {
-      ['info', 'tech', 'dates', 'finance'].forEach(t => {
+      ['info', 'tech', 'dates', 'finance', 'files'].forEach(t => {
         const btn = document.getElementById('btn-det-' + t);
-        if(btn) btn.classList.remove('btn-primary');
+        if(btn) btn.classList.remove('active');
       });
 
+      const activeBtn = document.getElementById('btn-det-' + type);
+      if (activeBtn) activeBtn.classList.add('active');
+
       const grid = document.getElementById('detail-grid');
+      const filesTab = document.getElementById('files-tab-container');
+
+      if (type === 'files') {
+        grid.classList.add('hidden');
+        filesTab.classList.remove('hidden');
+        renderFilesTab();
+        return;
+      }
+
+      filesTab.classList.add('hidden');
+      grid.classList.remove('hidden');
+
       const r = (lbl, val) => `<div class="col-md-6 mb-2"><div class="kpi-label">${lbl}</div><div class="fw-bold" style="font-size:0.9rem;">${val || '—'}</div></div>`;
 
       let html = "";
@@ -453,6 +501,94 @@
                r("M2 Amount", cachedProject.M2_Amount) + r("Lender Link", cachedProject.Lender_Link ? `<a href="${cachedProject.Lender_Link}" target="_blank">Open Link</a>` : "—");
       }
       grid.innerHTML = html;
+    }
+
+    function renderFilesTab() {
+      const container = document.getElementById('phase-files-accordion');
+      const safeId = str => str.replace(/[^a-zA-Z0-9]/g, '_');
+
+      container.innerHTML = PHASES.map(phase => {
+        const phaseFiles = cachedProjectFiles.filter(f => f.phase === phase);
+        const pId = safeId(phase);
+
+        const fileListHtml = phaseFiles.length > 0 ? phaseFiles.map(f => `
+          <div class="d-flex justify-content-between align-items-center p-2 border-bottom style="font-size:0.8rem;">
+            <div>
+              <a href="${f.fileUrl}" target="_blank" class="fw-bold text-dark text-decoration-none">
+                <i class="fas fa-file-alt me-1"></i> ${f.fileName}
+              </a>
+              ${f.note ? `<div class="text-muted" style="font-size:0.75rem;">Note: ${f.note}</div>` : ''}
+              <div class="text-muted" style="font-size:0.65rem;">Uploaded ${f.timestamp} by ${f.uploadedBy}</div>
+            </div>
+            <a href="${f.fileUrl}" target="_blank" class="btn btn-action">View File</a>
+          </div>
+        `).join('') : '<div class="text-muted p-2" style="font-size:0.75rem;">No files uploaded for this phase yet.</div>';
+
+        return `
+          <div class="phase-accordion-item">
+            <div class="phase-accordion-header" onclick="togglePhaseCollapse('${pId}')">
+              <span>${phase} (${phaseFiles.length})</span>
+              <i class="fas fa-chevron-down" id="icon-${pId}"></i>
+            </div>
+            <div id="body-${pId}" class="p-3 hidden">
+              <div class="mb-3">${fileListHtml}</div>
+              <div class="border-top pt-3">
+                <div class="kpi-label mb-2">Upload File To ${phase}</div>
+                <div class="row g-2">
+                  <div class="col-md-5"><input type="file" id="file_input_${pId}" class="form-control form-control-sm" required></div>
+                  <div class="col-md-5"><input type="text" id="note_input_${pId}" class="form-control form-control-sm" placeholder="Add note or label (e.g. Design Spec v1)"></div>
+                  <div class="col-md-2"><button class="btn btn-primary w-100 btn-sm" id="btn_upload_${pId}" onclick="handleFileUpload('${phase}', '${pId}')">Upload</button></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function togglePhaseCollapse(pId) {
+      const body = document.getElementById('body-' + pId);
+      const icon = document.getElementById('icon-' + pId);
+      if (body.classList.contains('hidden')) {
+        body.classList.remove('hidden');
+        icon.className = "fas fa-chevron-up";
+      } else {
+        body.classList.add('hidden');
+        icon.className = "fas fa-chevron-down";
+      }
+    }
+
+    async function handleFileUpload(phase, pId) {
+      const fileEl = document.getElementById(`file_input_${pId}`);
+      const noteEl = document.getElementById(`note_input_${pId}`);
+      const btn = document.getElementById(`btn_upload_${pId}`);
+
+      const file = fileEl.files[0];
+      if (!file) { alert("Please select a file to upload."); return; }
+
+      btn.innerText = "UPLOADING..."; btn.disabled = true;
+      const base64 = await readFileBase64(file);
+      const sender = (portalData.currentUser && portalData.currentUser.name) ? portalData.currentUser.name : "Partner";
+
+      const payload = {
+        projectId: currentProjectId,
+        phase: phase,
+        fileName: file.name,
+        fileData: base64,
+        note: noteEl.value.trim(),
+        uploadedBy: sender
+      };
+
+      apiPost('uploadProjectFile', payload)
+        .then(res => {
+          cachedProjectFiles = res.files || [];
+          renderFilesTab();
+          togglePhaseCollapse(pId);
+        })
+        .catch(err => {
+          alert("Error uploading file: " + err.message);
+          btn.innerText = "Upload"; btn.disabled = false;
+        });
     }
 
     function updateStatusStage(newStatus) {
