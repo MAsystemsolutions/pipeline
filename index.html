@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pipeline Demo Portal</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <style>
+    :root { 
+      --vogue-bg: #2c2e33; 
+      --vogue-card-bg: #ffffff; 
+      --vogue-black: #111111; 
+      --vogue-muted: #777777; 
+      --vogue-light-gray: #f4f4f0; 
+      --vogue-alert: #d81b60; 
+      --vogue-green: #28a745;
+    }
+    
+    body { 
+      background-color: var(--vogue-bg) !important; 
+      color: var(--vogue-black); 
+      padding: 30px 20px; 
+      font-family: 'Montserrat', sans-serif; 
+      letter-spacing: 0.5px; 
+      min-height: 100vh;
+    }
+
+    /* HEADER & NAV */
+    .header-container { border-bottom: 2px solid #ffffff; padding-bottom: 20px; margin-bottom: 25px; }
+    .header-container h2 { color: #ffffff !important; }
+    .header-subtitle { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 3px; color: #cccccc !important; }
+    .brand-logo { height: 60px; border: 1px solid #ffffff; margin-right: 20px; box-shadow: 4px 4px 0px rgba(0,0,0,0.3); object-fit: cover; }
+    h2, h3, h5, .modal-title { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin: 0; }
+
+    .nav-tabs { border-bottom: 2px solid var(--vogue-black); margin-bottom: 25px; }
+    .nav-tabs .nav-link { border-radius: 0; color: #ffffff; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; padding: 12px 20px; border: none; cursor: pointer; }
+    .nav-tabs .nav-link.active { background-color: #ffffff; color: var(--vogue-black); border: 1px solid #ffffff; }
+
+    /* CARDS & CONTAINERS */
+    .card { border-radius: 0px !important; border: 1px solid #111; background-color: var(--vogue-card-bg); box-shadow: 12px 12px 0px rgba(0,0,0,0.35); margin-bottom: 25px; }
+    .kpi-card { border: 1px solid #111; padding: 20px; background: var(--vogue-card-bg); text-align: center; box-shadow: 6px 6px 0px rgba(0,0,0,0.3); }
+    .kpi-number { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; color: var(--vogue-black); margin-bottom: 5px; }
+    .kpi-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--vogue-muted); font-weight: 600; }
+
+    /* BUTTONS */
+    .btn { border-radius: 0px !important; text-transform: uppercase; font-size: 0.75rem; font-weight: 600; letter-spacing: 2px; padding: 10px 20px; }
+    .btn-primary { background-color: var(--vogue-black); border-color: var(--vogue-black); color: #ffffff; }
+    .btn-primary:hover, .btn-primary:disabled { background-color: #ffffff; color: var(--vogue-black); border-color: var(--vogue-black); }
+    .btn-header { background-color: #ffffff; color: var(--vogue-black); border: 1px solid #ffffff; }
+    .btn-header:hover { background-color: var(--vogue-black); color: #ffffff; border-color: #ffffff; }
+    .btn-action { color: var(--vogue-black); border: 1px solid var(--vogue-black); background: transparent; padding: 4px 10px; font-size: 0.65rem; font-weight: 600; text-decoration: none; display: inline-block; cursor: pointer; }
+    .btn-action:hover { background-color: var(--vogue-black); color: #ffffff; }
+
+    /* TABLES & BADGES */
+    .table thead th { font-family: 'Montserrat', sans-serif; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 2px; background-color: var(--vogue-black) !important; color: #ffffff !important; padding: 15px; }
+    .table tbody td { padding: 14px 15px; border-bottom: 1px solid #e0e0e0; font-size: 0.85rem; }
+    .table tbody tr:hover { background-color: var(--vogue-light-gray); }
+    .badge-clear { border: 1px solid var(--vogue-green); color: var(--vogue-green); font-size: 0.6rem; letter-spacing: 1px; padding: 3px 6px; font-weight: 600; text-transform: uppercase; }
+    .badge-alert { background-color: var(--vogue-alert); color: #ffffff; font-size: 0.6rem; letter-spacing: 1px; padding: 4px 8px; font-weight: 700; text-transform: uppercase; }
+
+    /* MODALS & FORMS */
+    .modal-content { border-radius: 0px !important; border: 2px solid var(--vogue-black); box-shadow: 12px 12px 0px rgba(0,0,0,0.5); background-color: var(--vogue-light-gray); }
+    .modal-header { background-color: var(--vogue-black); color: #ffffff; border-radius: 0px; padding: 20px; }
+    .modal-header .modal-title { color: #ffffff; }
+    .form-control, .form-select { border-radius: 0px; border: 1px solid var(--vogue-black); font-size: 0.85rem; padding: 10px; }
+
+    /* CHEVRON PROGRESS */
+    .progress-path { display: flex; gap: 4px; padding: 15px; background: #fff; border: 1px solid #111; overflow-x: auto; margin-bottom: 20px; }
+    .step { flex: 1; min-width: 90px; padding: 10px 4px; text-align: center; font-size: 0.6rem; font-weight: 700; background: var(--vogue-light-gray); border: 1px solid #ccc; cursor: pointer; text-transform: uppercase; color: #555; }
+    .step.active { background: var(--vogue-black); color: #fff; border-color: var(--vogue-black); }
+    .step.completed { border-color: var(--vogue-green); color: var(--vogue-green); }
+    .step.issue-step.active { background: var(--vogue-alert) !important; border-color: var(--vogue-alert) !important; color: #fff; }
+
+    /* FEED & MENTIONS */
+    .mention-item { padding: 8px 12px; cursor: pointer; font-size: 0.8rem; border-bottom: 1px solid #eee; }
+    .mention-item:hover { background-color: var(--vogue-light-gray); }
+    
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <div class="container-fluid max-w-1500">
+    <!-- HEADER -->
+    <div id="navBar" class="d-flex justify-content-between align-items-center header-container">
+      <div class="d-flex align-items-center">
+        <img src="https://res.cloudinary.com/dkmv3fmsa/image/upload/v1789252668/Screenshot_2026-09-12_173605_hwxart.png" alt="Logo" class="brand-logo">
+        <div>
+          <h2>Pipeline Demo Portal</h2>
+          <div class="header-subtitle">Executive Solar Operations Engine</div>
+        </div>
+      </div>
+      <div class="d-flex align-items-center">
+        <div id="user-display" class="text-white text-uppercase me-3" style="font-size:0.75rem; letter-spacing:1px; font-weight:600;">Loading User...</div>
+        <button class="btn btn-header me-2" onclick="openNewProjectModal()">+ New Project</button>
+      </div>
+    </div>
+
+    <!-- TABS NAVIGATION -->
+    <ul class="nav nav-tabs" id="portalTabs">
+      <li class="nav-item"><a class="nav-link active" id="tab-Dashboard" onclick="switchView('Dashboard')">Pipeline Overview</a></li>
+      <li class="nav-item"><a class="nav-link" id="tab-Projects" onclick="switchView('Projects')">Projects Master List</a></li>
+      <li class="nav-item" id="tab-Details-Wrapper" style="display:none;"><a class="nav-link" id="tab-ProjectDetails">Project Details</a></li>
+    </ul>
+
+    <!-- VIEW 1: DASHBOARD -->
+    <div id="view-Dashboard">
+      <div class="row g-3 mb-4" id="stats-container">
+        <div class="col-12 text-center py-5 text-white">
+          <div class="spinner-border text-light" role="status"></div>
+          <p class="mt-2" style="font-size:0.75rem; letter-spacing:1.5px;">SYNCING PIPELINE COUNTS...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 2: PROJECTS LIST -->
+    <div id="view-Projects" style="display:none;">
+      <div class="card p-0">
+        <div class="p-3 bg-white border-bottom border-dark d-flex justify-content-between align-items-center">
+          <input type="text" id="projSearch" onkeyup="filterProjectsTable()" placeholder="SEARCH PROJECT ID, NAME, OR PARTNER..." class="form-control w-25">
+          <button class="btn btn-primary" onclick="loadData()">Refresh List</button>
+        </div>
+        <table class="table align-middle m-0">
+          <thead>
+            <tr>
+              <th>NB_ID</th>
+              <th>Project Name</th>
+              <th>Affiliate Partner</th>
+              <th>Status</th>
+              <th class="text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody id="projectsTableBody">
+            <tr><td colspan="5" class="text-center py-5">Loading Pipeline Data...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- VIEW 3: PROJECT DETAILS -->
+    <div id="view-ProjectDetails" style="display:none;">
+      <div class="card p-4">
+        <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+          <div>
+            <div class="kpi-label">PROJECT IDENTIFIER</div>
+            <h2 id="det-id" class="m-0 text-dark">NB_000</h2>
+            <div id="det-name" class="text-muted fw-bold" style="font-size:0.9rem;">Project Name</div>
+          </div>
+          <div class="text-end">
+            <button class="btn btn-action me-2" onclick="switchView('Projects')">← Back To Pipeline</button>
+            <button id="btn-edit-master" class="btn btn-primary me-2" onclick="openEditModal()">Edit Record</button>
+            <a id="btn-drive-folder" target="_blank" class="btn btn-header hidden">Drive Folder</a>
+          </div>
+        </div>
+
+        <!-- CHEVRON PATH -->
+        <div id="chevron-path" class="progress-path"></div>
+
+        <div class="row g-4">
+          <div class="col-md-8">
+            <div class="card p-3">
+              <div class="btn-group w-100 mb-3">
+                <button class="btn btn-action active" id="btn-det-info" onclick="switchDetailTab('info')">Site & Contact</button>
+                <button class="btn btn-action" id="btn-det-tech" onclick="switchDetailTab('tech')">System Specs</button>
+                <button class="btn btn-action" id="btn-det-dates" onclick="switchDetailTab('dates')">Operations</button>
+                <button class="btn btn-action" id="btn-det-finance" onclick="switchDetailTab('finance')">Finance</button>
+              </div>
+              <div id="detail-grid" class="row g-3"></div>
+            </div>
+          </div>
+
+          <!-- AUDIT FEED & COMMENTS -->
+          <div class="col-md-4">
+            <div class="card p-3">
+              <h5 class="mb-3">Project Audit Feed</h5>
+              <div class="position-relative mb-2">
+                <textarea id="feed-input" class="form-control" rows="3" placeholder="Add update... Use @name to tag users"></textarea>
+                <div id="mention-suggestions" class="position-absolute bg-white border w-100 hidden" style="top:100%; z-index:1000; max-height:120px; overflow-y:auto;"></div>
+              </div>
+              <button class="btn btn-primary w-100 mb-3" onclick="postFeedUpdate()">Post Update</button>
+              <div id="feed-list" class="overflow-auto" style="max-height:350px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: NEW PROJECT -->
+  <div class="modal fade" id="newProjectModal" tabindex="-1">
+    <div class="modal-dialog modal-lg"><div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">New Project Intake</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form onsubmit="handleNewProjectSubmit(event)">
+        <div class="modal-body p-4">
+          <div class="row g-3">
+            <div class="col-md-6"><label class="kpi-label">Project Name</label><input type="text" name="Project_Name" class="form-control" required></div>
+            <div class="col-md-6"><label class="kpi-label">Affiliate Partner</label>
+              <select name="Affiliate_Partner" class="form-select" required>
+                <option value="">-- Select Partner --</option>
+                <option value="Affiliate 1">Affiliate 1</option><option value="Affiliate 2">Affiliate 2</option>
+                <option value="Affiliate 3">Affiliate 3</option><option value="Affiliate 4">Affiliate 4</option>
+              </select>
+            </div>
+            <div class="col-md-6"><label class="kpi-label">Homeowner Name</label><input type="text" name="Account_Name" class="form-control" required></div>
+            <div class="col-md-6"><label class="kpi-label">Utility Provider</label><input type="text" name="Utility_Provider" class="form-control" required></div>
+            <div class="col-12"><label class="kpi-label">Site Address</label><input type="text" name="Site_Address" class="form-control" required></div>
+            <div class="col-md-6"><label class="kpi-label">Initial Status</label>
+              <select name="Project_Status" id="new_Project_Status" class="form-select" onchange="toggleConcernsField('new')">
+                <option value="Created">Created</option><option value="Intake">Intake</option><option value="Issue">Issue</option><option value="Cancelled">Cancelled</option>
+              </select>
+            </div>
+            <div class="col-md-6"><label class="kpi-label">System Size (kW)</label><input type="text" name="System_Size_KW" class="form-control"></div>
+            <div class="col-12 hidden" id="new_concerns_wrapper">
+              <label class="kpi-label text-danger">Issue / Cancellation Reason</label>
+              <textarea name="Concerns" id="new_Concerns" class="form-control border-danger"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer p-3 bg-light"><button type="submit" id="saveNewBtn" class="btn btn-primary w-100">Create Project</button></div>
+      </form>
+    </div></div>
+  </div>
+
+  <!-- MODAL: EDIT RECORD -->
+  <div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-xl"><div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Edit Master Record: <span id="edit-modal-id"></span></h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form onsubmit="handleEditSubmit(event)" id="masterEditForm">
+        <input type="hidden" name="NB_ID" id="ef-NB_ID">
+        <div class="modal-body p-4 overflow-auto" style="max-height:70vh;">
+          <div class="row g-3">
+            <div class="col-md-4"><label class="kpi-label">Status</label>
+              <select name="Project_Status" id="ef-Project_Status" class="form-select" onchange="toggleConcernsField('edit')">
+                <option value="Created">Created</option><option value="Issue">Issue</option><option value="Intake">Intake</option><option value="Site Survey">Site Survey</option><option value="Design & Engineering">Design & Engineering</option><option value="Permitting">Permitting</option><option value="Installation">Installation</option><option value="Inspection">Inspection</option><option value="PTO">PTO</option><option value="Closed">Closed</option><option value="Cancelled">Cancelled</option>
+              </select>
+            </div>
+            <div class="col-md-8 hidden" id="edit_concerns_wrapper">
+              <label class="kpi-label text-danger">Issue / Cancellation Reason</label>
+              <input type="text" name="Concerns" id="ef-Concerns" class="form-control border-danger">
+            </div>
+            <div class="col-md-4"><label class="kpi-label">Project Name</label><input type="text" name="Project_Name" id="ef-Project_Name" class="form-control"></div>
+            <div class="col-md-4"><label class="kpi-label">Partner</label><input type="text" name="Affiliate_Partner" id="ef-Affiliate_Partner" class="form-control"></div>
+            <div class="col-md-4"><label class="kpi-label">Account Name</label><input type="text" name="Account_Name" id="ef-Account_Name" class="form-control"></div>
+            <div class="col-md-4"><label class="kpi-label">Primary Contact</label><input type="text" name="Primary_Contact" id="ef-Primary_Contact" class="form-control"></div>
+            <div class="col-md-4"><label class="kpi-label">Email</label><input type="email" name="Contact_Email" id="ef-Contact_Email" class="form-control"></div>
+            <div class="col-md-4"><label class="kpi-label">Phone</label><input type="text" name="Contact_Phone" id="ef-Contact_Phone" class="form-control"></div>
+            <div class="col-md-8"><label class="kpi-label">Address</label><input type="text" name="Site_Address" id="ef-Site_Address" class="form-control"></div>
+            <div class="col-md-4"><label class="kpi-label">Utility Provider</label><input type="text" name="Utility_Provider" id="ef-Utility_Provider" class="form-control"></div>
+            <div class="col-md-4"><label class="kpi-label">System Size (kW)</label><input type="text" name="System_Size_KW" id="ef-System_Size_KW" class="form-control"></div>
+            <div class="col-md-4"><label class="kpi-label">Panel Type</label><input type="text" name="Panel_Type" id="ef-Panel_Type" class="form-control"></div>
+            <div class="col-md-4"><label class="kpi-label">Inverter Type</label><input type="text" name="Inverter_Type" id="ef-Inverter_Type" class="form-control"></div>
+            <div class="col-md-4"><label class="kpi-label">Contract Amount</label><input type="text" name="Contract_Amount" id="ef-Contract_Amount" class="form-control"></div>
+            <div class="col-md-4"><label class="kpi-label">Lender Partner</label><input type="text" name="Lender_Partner" id="ef-Lender_Partner" class="form-control"></div>
+            <div class="col-md-4"><label class="kpi-label">Lender Link</label><input type="text" name="Lender_Link" id="ef-Lender_Link" class="form-control"></div>
+            <div class="col-md-12"><label class="kpi-label">Drive Folder URL/ID</label><input type="text" name="Drive_Folder_ID" id="ef-Drive_Folder_ID" class="form-control"></div>
+          </div>
+        </div>
+        <div class="modal-footer p-3 bg-light"><button type="submit" id="saveEditBtn" class="btn btn-primary w-100">Save Master Changes</button></div>
+      </form>
+    </div></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbycD8ZzniLRMFFeapAaM-Gm-4IQLjfG_Kl0fyFRR2KC5KhoXdTtXU22GFRk2rZy1tiB/exec";
+
+    let portalData = { projects: [], stats: {}, currentUser: {} };
+    let currentProjectId = null;
+    let cachedProject = {};
+    let allUserNames = [];
+
+    // JSONP GET loader (Bypasses CORS completely)
+    function apiGetJSONP(action, params = {}) {
+      return new Promise((resolve, reject) => {
+        const callbackName = 'jsonp_cb_' + Math.round(100000 * Math.random());
+        window[callbackName] = function(data) {
+          delete window[callbackName];
+          document.body.removeChild(script);
+          if (data.status === 'error') reject(new Error(data.message));
+          else resolve(data.data || data);
+        };
+
+        const queryParams = new URLSearchParams({ action, callback: callbackName, ...params }).toString();
+        const script = document.createElement('script');
+        script.src = `${API_URL}?${queryParams}`;
+        script.onerror = () => {
+          delete window[callbackName];
+          document.body.removeChild(script);
+          reject(new Error("Network error reaching Apps Script API"));
+        };
+        document.body.appendChild(script);
+      });
+    }
+
+    // POST request handler using text/plain to eliminate CORS preflight blocks
+    async function apiPost(action, payload = {}) {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action, payload })
+      });
+      const json = await res.json();
+      if (json.status === 'error') throw new Error(json.message);
+      return json.data || json;
+    }
+
+    function loadData() {
+      apiGetJSONP('getPortalData')
+        .then(data => {
+          portalData = data;
+          if(data.currentUser) {
+            document.getElementById('user-display').innerText = data.currentUser.name || data.currentUser.email || "Guest User";
+          }
+          renderDashboard();
+          renderProjectsTable();
+        })
+        .catch(err => console.error("Error loading portal data:", err));
+
+      apiGetJSONP('getAllUsers')
+        .then(users => { allUserNames = users; })
+        .catch(err => console.error(err));
+    }
+
+    function renderDashboard() {
+      const container = document.getElementById('stats-container');
+      const stats = portalData.stats || {};
+      const keys = Object.keys(stats);
+      if(keys.length === 0) return;
+
+      container.innerHTML = keys.map(stage => `
+        <div class="col-md-3">
+          <div class="kpi-card">
+            <div class="kpi-number">${stats[stage]}</div>
+            <div class="kpi-label">${stage}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderProjectsTable() {
+      const tbody = document.getElementById('projectsTableBody');
+      const projects = portalData.projects || [];
+
+      if (projects.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-5">No projects found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = projects.map(proj => {
+        const isIssue = proj.Project_Status === 'Issue' || proj.Project_Status === 'Cancelled';
+        const badgeClass = isIssue ? 'badge-alert' : 'badge-clear';
+        return `
+          <tr>
+            <td><strong style="font-family:'Playfair Display',serif;">${proj.NB_ID || '—'}</strong></td>
+            <td style="font-weight:600;">${proj.Project_Name || 'Unnamed'}</td>
+            <td><span class="badge badge-clear">${proj.Affiliate_Partner || '—'}</span></td>
+            <td><span class="badge ${badgeClass}">${proj.Project_Status || 'Created'}</span></td>
+            <td class="text-center">
+              <button class="btn btn-action" onclick="openProjectDetails('${proj.NB_ID}')">View Details</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterProjectsTable() {
+      const input = document.getElementById("projSearch").value.toUpperCase();
+      const rows = document.getElementById("projectsTableBody").getElementsByTagName("tr");
+      for (let i = 0; i < rows.length; i++) {
+        rows[i].style.display = rows[i].innerText.toUpperCase().includes(input) ? "" : "none";
+      }
+    }
+
+    function switchView(viewName) {
+      ['Dashboard', 'Projects', 'ProjectDetails'].forEach(v => {
+        document.getElementById('view-' + v).style.display = 'none';
+        const tab = document.getElementById('tab-' + v);
+        if(tab) tab.classList.remove('active');
+      });
+
+      document.getElementById('view-' + viewName).style.display = 'block';
+      const activeTab = document.getElementById('tab-' + viewName);
+      if(activeTab) activeTab.classList.add('active');
+    }
+
+    function openProjectDetails(id) {
+      currentProjectId = id;
+      document.getElementById('tab-Details-Wrapper').style.display = 'block';
+      switchView('ProjectDetails');
+
+      apiGetJSONP('getProjectById', { pid: id })
+        .then(data => {
+          cachedProject = data;
+          document.getElementById('det-id').innerText = data.NB_ID || id;
+          document.getElementById('det-name').innerText = data.Project_Name || "Project Information";
+          
+          const driveBtn = document.getElementById('btn-drive-folder');
+          if (data.Drive_Folder_ID) {
+            driveBtn.href = data.Drive_Folder_ID.startsWith('http') ? data.Drive_Folder_ID : `https://drive.google.com/drive/folders/${data.Drive_Folder_ID}`;
+            driveBtn.classList.remove('hidden');
+          } else {
+            driveBtn.classList.add('hidden');
+          }
+
+          const stages = ["Created", "Issue", "Intake", "Site Survey", "Design & Engineering", "Permitting", "Installation", "Inspection", "PTO", "Closed", "Cancelled"];
+          let foundActive = false;
+          document.getElementById('chevron-path').innerHTML = stages.map(s => {
+            let cls = "step";
+            if (s === "Issue" || s === "Cancelled") cls += " issue-step";
+            if (s.trim() === (data.Project_Status || "").trim()) { cls += " active"; foundActive = true; }
+            else if (!foundActive) { cls += " completed"; }
+            return `<div class="${cls}" onclick="updateStatusStage('${s}')">${s}</div>`;
+          }).join('');
+
+          switchDetailTab('info');
+          loadProjectFeed();
+        })
+        .catch(err => alert("Error loading project: " + err.message));
+    }
+
+    function switchDetailTab(type) {
+      ['info', 'tech', 'dates', 'finance'].forEach(t => {
+        const btn = document.getElementById('btn-det-' + t);
+        if(btn) btn.classList.remove('btn-primary');
+      });
+
+      const grid = document.getElementById('detail-grid');
+      const r = (lbl, val) => `<div class="col-md-6 mb-2"><div class="kpi-label">${lbl}</div><div class="fw-bold" style="font-size:0.9rem;">${val || '—'}</div></div>`;
+
+      let html = "";
+      if (type === 'info') {
+        html = r("Account Name", cachedProject.Account_Name) + r("Affiliate Partner", cachedProject.Affiliate_Partner) +
+               r("Primary Contact", cachedProject.Primary_Contact) + r("Contact Email", cachedProject.Contact_Email) +
+               r("Contact Phone", cachedProject.Contact_Phone) + r("Site Address", cachedProject.Site_Address) +
+               r("Utility Provider", cachedProject.Utility_Provider);
+      } else if (type === 'tech') {
+        html = r("Project Phase", cachedProject.Project_Phase) + r("System Size", cachedProject.System_Size_KW ? cachedProject.System_Size_KW + " kW" : "—") +
+               r("Panel Type", cachedProject.Panel_Type) + r("Inverter Type", cachedProject.Inverter_Type) +
+               r("Battery Backup", cachedProject.Battery_Backup) + r("Roof Type", cachedProject.Roof_Type) +
+               r("Concerns / Issues", cachedProject.Concerns);
+      } else if (type === 'dates') {
+        html = r("Contract Signed", cachedProject.Contract_Signed_Date) + r("Site Survey Date", cachedProject.Site_Survey_Date) +
+               r("Design Approved", cachedProject.Design_Approved_Date) + r("Permit Submitted", cachedProject.Permit_Submitted_Date) +
+               r("Permit Approved", cachedProject.Permit_Approved_Date) + r("Installation Date", cachedProject.Installation_Date) +
+               r("Inspection Date", cachedProject.Inspection_Date) + r("PTO Date", cachedProject.PTO_Date);
+      } else if (type === 'finance') {
+        html = r("Contract Amount", cachedProject.Contract_Amount) + r("Lender Partner", cachedProject.Lender_Partner) +
+               r("Loan Status", cachedProject.Loan_Status) + r("M1 Amount", cachedProject.M1_Amount) +
+               r("M2 Amount", cachedProject.M2_Amount) + r("Lender Link", cachedProject.Lender_Link ? `<a href="${cachedProject.Lender_Link}" target="_blank">Open Link</a>` : "—");
+      }
+      grid.innerHTML = html;
+    }
+
+    function updateStatusStage(newStatus) {
+      if (confirm(`Advance project status to "${newStatus}"?`)) {
+        apiPost('updateProjectStatus', { id: currentProjectId, newStatus })
+          .then(() => { loadData(); openProjectDetails(currentProjectId); })
+          .catch(err => alert("Error updating status: " + err.message));
+      }
+    }
+
+    function loadProjectFeed() {
+      apiGetJSONP('getProjectComments', { pid: currentProjectId })
+        .then(comments => {
+          const list = document.getElementById('feed-list');
+          if (!comments || comments.length === 0) {
+            list.innerHTML = '<div class="text-muted text-center py-3" style="font-size:0.75rem;">No updates posted yet.</div>';
+            return;
+          }
+          list.innerHTML = comments.map(c => `
+            <div class="border-bottom py-2">
+              <div class="d-flex justify-content-between" style="font-size:0.7rem;">
+                <strong class="text-uppercase">${c.user}</strong>
+                <span class="text-muted">${c.timestamp}</span>
+              </div>
+              <div style="font-size:0.8rem;" class="mt-1">${c.text}</div>
+            </div>
+          `).join('');
+        })
+        .catch(err => console.error(err));
+    }
+
+    function postFeedUpdate() {
+      const input = document.getElementById('feed-input');
+      const text = input.value.trim();
+      if (!text) return;
+      const sender = (portalData.currentUser && portalData.currentUser.name) ? portalData.currentUser.name : "Partner";
+
+      apiPost('addProjectComment', { id: currentProjectId, text, senderName: sender, parentId: "" })
+        .then(() => { input.value = ""; loadProjectFeed(); })
+        .catch(err => alert("Error posting comment: " + err.message));
+    }
+
+    function openNewProjectModal() {
+      bootstrap.Modal.getOrCreateInstance(document.getElementById('newProjectModal')).show();
+    }
+
+    function toggleConcernsField(prefix) {
+      const status = document.getElementById(`${prefix}_Project_Status`).value;
+      const wrapper = document.getElementById(`${prefix}_concerns_wrapper`);
+      if (status === 'Issue' || status === 'Cancelled') wrapper.classList.remove('hidden');
+      else wrapper.classList.add('hidden');
+    }
+
+    function handleNewProjectSubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('saveNewBtn');
+      btn.innerText = "SAVING..."; btn.disabled = true;
+      const formObj = Object.fromEntries(new FormData(e.target));
+
+      apiPost('createNewProject', formObj)
+        .then(() => {
+          btn.innerText = "Create Project"; btn.disabled = false;
+          e.target.reset();
+          bootstrap.Modal.getOrCreateInstance(document.getElementById('newProjectModal')).hide();
+          loadData();
+        })
+        .catch(err => { alert("Error: " + err.message); btn.innerText = "Create Project"; btn.disabled = false; });
+    }
+
+    function openEditModal() {
+      document.getElementById('edit-modal-id').innerText = cachedProject.NB_ID;
+      document.getElementById('ef-NB_ID').value = cachedProject.NB_ID || currentProjectId;
+      for (let key in cachedProject) {
+        const field = document.getElementById('ef-' + key);
+        if (field) field.value = cachedProject[key] || "";
+      }
+      toggleConcernsField('edit');
+      bootstrap.Modal.getOrCreateInstance(document.getElementById('editModal')).show();
+    }
+
+    function handleEditSubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('saveEditBtn');
+      btn.innerText = "SAVING..."; btn.disabled = true;
+      const formObj = Object.fromEntries(new FormData(e.target));
+
+      apiPost('updateProject', { id: currentProjectId, form: formObj })
+        .then(() => {
+          btn.innerText = "Save Master Changes"; btn.disabled = false;
+          bootstrap.Modal.getOrCreateInstance(document.getElementById('editModal')).hide();
+          loadData();
+          openProjectDetails(currentProjectId);
+        })
+        .catch(err => { alert("Error: " + err.message); btn.innerText = "Save Master Changes"; btn.disabled = false; });
+    }
+
+    window.onload = loadData;
+  </script>
+</body>
+</html>
